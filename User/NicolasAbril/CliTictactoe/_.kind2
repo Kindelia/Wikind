@@ -1,0 +1,291 @@
+// A simple CLI game of tic tac toe
+
+Piece : Type
+Piece.o : Piece
+Piece.x : Piece
+
+Piece.equal (a: Piece) (b: Piece) : Bool
+Piece.equal Piece.o Piece.o = Bool.true
+Piece.equal Piece.x Piece.x = Bool.true
+Piece.equal Piece.o Piece.x = Bool.false
+Piece.equal Piece.x Piece.o = Bool.false
+
+Piece.show (piece: Piece) : String
+Piece.show Piece.o = "O"
+Piece.show Piece.x = "X"
+
+Tile : Type
+Tile.empty : Tile
+Tile.filled (piece: Piece) : Tile
+
+Tile.is_empty (tile: Tile) : Bool
+Tile.is_empty Tile.empty = Bool.true
+Tile.is_empty tile       = Bool.false
+
+Tile.is_x (tile: Tile) : Bool
+Tile.is_x (Tile.filled Piece.x) = Bool.true
+Tile.is_x  tile                 = Bool.false
+
+Tile.is_o (tile: Tile) : Bool
+Tile.is_o (Tile.filled Piece.o) = Bool.true
+Tile.is_o  tile                 = Bool.false
+
+Tile.show (tile: Tile) : String
+Tile.show Tile.empty = " "
+Tile.show (Tile.filled piece) = Piece.show piece
+
+Board : Type
+Board.new
+    (row1: Triple Tile Tile Tile) 
+    (row2: Triple Tile Tile Tile)
+    (row3: Triple Tile Tile Tile)
+: Board
+
+Board.set_tile (coord: Coord) (piece: Piece) (board: Board) : Board
+Board.set_tile (Coord.new Num3.1 Num3.1) piece (Board.new (Triple.new t1 t2 t3) r2 r3) = Board.new (Triple.new (Tile.filled piece) t2 t3) r2 r3
+Board.set_tile (Coord.new Num3.1 Num3.2) piece (Board.new (Triple.new t1 t2 t3) r2 r3) = Board.new (Triple.new t1 (Tile.filled piece) t3) r2 r3
+Board.set_tile (Coord.new Num3.1 Num3.3) piece (Board.new (Triple.new t1 t2 t3) r2 r3) = Board.new (Triple.new t1 t2 (Tile.filled piece)) r2 r3
+Board.set_tile (Coord.new Num3.2 Num3.1) piece (Board.new r1 (Triple.new t1 t2 t3) r3) = Board.new r1 (Triple.new (Tile.filled piece) t2 t3) r3
+Board.set_tile (Coord.new Num3.2 Num3.2) piece (Board.new r1 (Triple.new t1 t2 t3) r3) = Board.new r1 (Triple.new t1 (Tile.filled piece) t3) r3
+Board.set_tile (Coord.new Num3.2 Num3.3) piece (Board.new r1 (Triple.new t1 t2 t3) r3) = Board.new r1 (Triple.new t1 t2 (Tile.filled piece)) r3
+Board.set_tile (Coord.new Num3.3 Num3.1) piece (Board.new r1 r2 (Triple.new t1 t2 t3)) = Board.new r1 r2 (Triple.new (Tile.filled piece) t2 t3)
+Board.set_tile (Coord.new Num3.3 Num3.2) piece (Board.new r1 r2 (Triple.new t1 t2 t3)) = Board.new r1 r2 (Triple.new t1 (Tile.filled piece) t3)
+Board.set_tile (Coord.new Num3.3 Num3.3) piece (Board.new r1 r2 (Triple.new t1 t2 t3)) = Board.new r1 r2 (Triple.new t1 t2 (Tile.filled piece))
+
+Board.get_tile (coord: Coord) (board: Board) : Tile
+Board.get_tile (Coord.new Num3.1 Num3.1) (Board.new (Triple.new t1 t2 t3) r2 r3) = t1
+Board.get_tile (Coord.new Num3.1 Num3.2) (Board.new (Triple.new t1 t2 t3) r2 r3) = t2
+Board.get_tile (Coord.new Num3.1 Num3.3) (Board.new (Triple.new t1 t2 t3) r2 r3) = t3
+Board.get_tile (Coord.new Num3.2 Num3.1) (Board.new r1 (Triple.new t1 t2 t3) r3) = t1
+Board.get_tile (Coord.new Num3.2 Num3.2) (Board.new r1 (Triple.new t1 t2 t3) r3) = t2
+Board.get_tile (Coord.new Num3.2 Num3.3) (Board.new r1 (Triple.new t1 t2 t3) r3) = t3
+Board.get_tile (Coord.new Num3.3 Num3.1) (Board.new r1 r2 (Triple.new t1 t2 t3)) = t1
+Board.get_tile (Coord.new Num3.3 Num3.2) (Board.new r1 r2 (Triple.new t1 t2 t3)) = t2
+Board.get_tile (Coord.new Num3.3 Num3.3) (Board.new r1 r2 (Triple.new t1 t2 t3)) = t3
+
+Board.winner (board: Board) : Maybe Piece {
+  let coords = [
+    (Triple.new (Pair.new 1 1) (Pair.new 1 2) (Pair.new 1 3))
+    (Triple.new (Pair.new 2 1) (Pair.new 2 2) (Pair.new 2 3))
+    (Triple.new (Pair.new 3 1) (Pair.new 3 2) (Pair.new 3 3))
+    (Triple.new (Pair.new 1 1) (Pair.new 2 1) (Pair.new 3 1))
+    (Triple.new (Pair.new 1 2) (Pair.new 2 2) (Pair.new 3 2))
+    (Triple.new (Pair.new 1 3) (Pair.new 2 3) (Pair.new 3 3))
+    (Triple.new (Pair.new 1 1) (Pair.new 2 2) (Pair.new 3 3))
+    (Triple.new (Pair.new 3 1) (Pair.new 2 2) (Pair.new 1 3))
+  ]
+  let tiles = List.map coords (c => Board.get_line c board)
+  let winners = List.map tiles (t => Board.line_winner t)
+  Maybe.first_some winners
+}
+
+Board.get_line (coords: Triple (Pair U60 U60) (Pair U60 U60) (Pair U60 U60)) (board: Board) : Triple Tile Tile Tile
+Board.get_line (Triple.new c1 c2 c3) board =
+  let c1 = Coord.from_u60_force c1
+  let c2 = Coord.from_u60_force c2
+  let c3 = Coord.from_u60_force c3
+  let t1 = Board.get_tile c1 board
+  let t2 = Board.get_tile c2 board
+  let t3 = Board.get_tile c3 board
+  Triple.new t1 t2 t3
+
+
+Board.line_winner (line: Triple Tile Tile Tile) : Maybe Piece
+Board.line_winner (Triple.new t1 t2 t3) =
+  if Bool.and (Bool.and (Tile.is_x t1) (Tile.is_x t2)) (Tile.is_x t3) {
+    Maybe.some Piece.x
+  } else {
+    if Bool.and (Bool.and (Tile.is_o t1) (Tile.is_o t2)) (Tile.is_o t3) {
+      Maybe.some Piece.o
+    } else {
+      Maybe.none
+    }
+  }
+
+Maybe.first_some <t: Type> (xs: List (Maybe t)) : Maybe t
+Maybe.first_some (List.cons x xs) = Maybe.or x (Maybe.first_some xs)
+Maybe.first_some  List.nil        = Maybe.none
+
+Board.show (board: Board) : String
+Board.show (Board.new (Triple.new t11 t12 t13) (Triple.new t21 t22 t23) (Triple.new t31 t32 t33)) =
+  String.flatten [
+    " " (Tile.show t11) " | " (Tile.show t12) " | " (Tile.show t13) " " String.new_line
+    "-----------" String.new_line
+    " " (Tile.show t21) " | " (Tile.show t22) " | " (Tile.show t23) " " String.new_line
+    "-----------" String.new_line
+    " " (Tile.show t31) " | " (Tile.show t32) " | " (Tile.show t33) " " String.new_line
+  ]
+
+Coord : Type
+Coord.new (row: Num3) (col: Num3) : Coord
+
+Coord.from_u60 (coord: Pair U60 U60) : Maybe Coord
+Coord.from_u60 (Pair.new 1 1) = Maybe.some (Coord.new Num3.1 Num3.1)
+Coord.from_u60 (Pair.new 1 2) = Maybe.some (Coord.new Num3.1 Num3.2)
+Coord.from_u60 (Pair.new 1 3) = Maybe.some (Coord.new Num3.1 Num3.3)
+Coord.from_u60 (Pair.new 2 1) = Maybe.some (Coord.new Num3.2 Num3.1)
+Coord.from_u60 (Pair.new 2 2) = Maybe.some (Coord.new Num3.2 Num3.2)
+Coord.from_u60 (Pair.new 2 3) = Maybe.some (Coord.new Num3.2 Num3.3)
+Coord.from_u60 (Pair.new 3 1) = Maybe.some (Coord.new Num3.3 Num3.1)
+Coord.from_u60 (Pair.new 3 2) = Maybe.some (Coord.new Num3.3 Num3.2)
+Coord.from_u60 (Pair.new 3 3) = Maybe.some (Coord.new Num3.3 Num3.3)
+Coord.from_u60 coord = Maybe.none
+
+Coord.from_u60_force (coord: Pair U60 U60) : Coord {
+  Maybe.default (Coord.from_u60 coord) (Coord.new Num3.1 Num3.1)
+}
+
+
+// If possible, converts the user input to a coordinate {x, y}
+// A valid inputs is any pair of 2 numbers separated with a space:
+// "0 2"
+// "4 4"
+// Invalid inputs:
+// "banana"
+// "   "
+Coord.read (input: String): Maybe Coord {
+  let split_input = String.split input " "
+  let num_parser  = (code: String) => Parser.run Parser.u60_decimal code
+  let maybe_nums  = List.map split_input num_parser
+  let num_extract = (n: Either U60 _) => Either.left_or n 0
+  let nums        = List.map maybe_nums num_extract
+  
+  let row = Maybe.default (List.at nums Nat.zero) 0
+  let col = Maybe.default (List.at nums Nat.one)  0
+  let maybe_coord = Coord.from_u60 (Pair.new row col)
+
+  let parse_ok    = List.all maybe_nums (e => Either.is_left e)
+  let is_len2     = Nat.equal (List.length nums) Nat.two
+  if Bool.and parse_ok is_len2 {
+    maybe_coord
+  } else {
+    Maybe.none
+  }
+}
+
+Num3 : Type
+Num3.1 : Num3
+Num3.2 : Num3
+Num3.3 : Num3
+
+State : Type
+State.new (turn: U60) (board: Board) : State
+
+State.get_turn (state: State) : U60
+State.get_turn (State.new turn board) = turn
+
+// Example of a finished game
+// (State.new
+//   7
+//   (Board.new
+//     (Triple.new (Tile.filled Piece.x) (Tile.filled Piece.x) (Tile.filled Piece.o))
+//     (Triple.new (Tile.empty)                    (Tile.filled Piece.x) (Tile.filled Piece.o))
+//     (Triple.new (Tile.empty)                    (Tile.filled Piece.o) (Tile.filled Piece.o))
+//   )
+// )
+
+State.empty : State {
+  (State.new
+    0
+    (Board.new
+      (Triple.new (Tile.empty) (Tile.empty) (Tile.empty))
+      (Triple.new (Tile.empty) (Tile.empty) (Tile.empty))
+      (Triple.new (Tile.empty) (Tile.empty) (Tile.empty))
+    ) 
+  )
+}
+
+State.show (state: State) : String
+State.show (State.new turn board) =
+  let turn_str = String.concat "Turn: " ((U60.show turn) "")
+  let player_str = String.concat "Next: " (Piece.show (State.next_piece (State.new turn board)))
+  let board_str = Board.show board
+  String.intercalate String.new_line [String.new_line turn_str player_str board_str]
+
+// Checks if a movement is valid
+// A valid movement is any movement inside the 3x3 board if the tile is unnocupied
+State.is_move_valid (coord: Coord) (state: State) : Bool
+State.is_move_valid coord (State.new turn board) =
+  let tile = Board.get_tile coord board
+  Bool.not (Tile.is_empty tile)
+
+// Who is the next one to play?
+State.next_piece (state: State) : Piece
+State.next_piece (State.new turn _) = if (U60.is_even turn) { Piece.x } else { Piece.o }
+
+State.do_move (coord: Coord) (state: State) : State
+State.do_move coord (State.new turn board) =
+  let next_piece = State.next_piece (State.new turn board)
+  let board      = Board.set_tile coord next_piece board
+  let turn       = (+ 1 turn)
+  State.new turn board
+
+State.get_tile (coord: Coord) (state: State) : Tile
+State.get_tile coord (State.new turn board) = Board.get_tile coord board
+
+State.winner (state: State) : Maybe Piece
+State.winner (State.new turn board) = Board.winner board
+
+Main : IO Unit {
+  do IO {
+    let state = State.empty
+    ask IO.output (State.show state)
+    TicTacToe.play state
+  }
+}
+
+TicTacToe.play (state: State) : IO Unit {
+  do IO {
+    // Read next move
+    ask IO.output "Where will you place the next piece? "
+    ask line  = IO.input
+    let coord = Coord.read line
+
+    // Try to make the given move
+    ask state = match Maybe coord {
+      some =>
+        let is_available = Tile.is_empty (State.get_tile coord.value state)
+        if is_available {
+          let state = State.do_move coord.value state
+          IO.pure state
+        } else {
+          do IO {
+            ask IO.output "You cannot play there!"
+            return state
+          }
+        }
+      none => do IO {
+        ask IO.output "Invalid entry"
+        return state
+      }
+    }
+
+    // Show state after move
+    ask IO.output (State.show state)
+
+    // Check if the game is over or if we continue
+    let winner = State.winner state
+    match Maybe winner {
+      some =>
+        // Spmeone won
+        do IO {
+          ask IO.output String.new_line
+          let win_str = String.concat (Piece.show winner.value) " wins!"
+          ask IO.output win_str
+          return Unit.new
+        }
+      none =>
+        if U60.equal (State.get_turn state) 9 {
+          // Draw
+          do IO {
+            ask IO.output String.new_line
+            ask IO.output "Draw!"
+            return Unit.new
+          }
+        } else {
+          // Not over
+          TicTacToe.play state
+        }
+    }
+  }
+}

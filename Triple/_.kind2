@@ -1,0 +1,2 @@
+// Automatically derived from Triple/_.type
+Triple (a: Type) (b: Type) (c: Type) : Type

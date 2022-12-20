@@ -1,0 +1,3 @@
+Either.right_or <l: Type> <r: Type> (either: Either l r) (or: r) : r
+Either.right_or (Either.left val)  or = or
+Either.right_or (Either.right val) or = val

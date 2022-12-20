@@ -1,0 +1,3 @@
+#kdl_name = T3
+#kdl_erase
+Triple.new <a: Type> <b: Type> <c: Type> (fst: a) (snd: b) (thr: c) : (Triple a b c)
